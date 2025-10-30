@@ -1,0 +1,34 @@
+
+import React from 'react';
+import { cn } from '../../lib/utils';
+
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+    label: string;
+}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, label, id, ...props }, ref) => {
+    return (
+        <div>
+            <label htmlFor={id} className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                {label}
+            </label>
+            <div className="mt-1">
+                <input
+                    id={id}
+                    type={type}
+                    className={cn(
+                        'flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-lavender-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-50 dark:focus:ring-lavender-400 dark:focus:ring-offset-slate-900',
+                        className
+                    )}
+                    ref={ref}
+                    {...props}
+                />
+            </div>
+        </div>
+    );
+  }
+);
+Input.displayName = 'Input';
+
+export { Input };
