@@ -1,4 +1,3 @@
-
 import { useAuth } from '../../hooks/useAuth';
 import { LogOut, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
@@ -29,7 +28,7 @@ export default function SidebarHeader() {
                 <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-lavender-100 dark:hover:bg-slate-700">
                     {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                 </button>
-                <button onClick={logout} className="p-2 rounded-full hover:bg-lavender-100 dark:hover:bg-slate-700">
+                <button onClick={logout} title="Logout" className="p-2 rounded-full hover:bg-lavender-100 dark:hover:bg-slate-700">
                     <LogOut size={20} className="text-red-500"/>
                 </button>
             </div>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -11,12 +10,12 @@ import MessageBubble from '../../../components/chat/MessageBubble';
 import MessageInput from '../../../components/chat/MessageInput';
 import { Message, Chat as ChatType } from '../../../types';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MessageCircle } from 'lucide-react';
 
 export default function ChatWindow() {
   const { chatId } = useParams();
-  const auth = useAuth();
-  const user = (auth as any).user;
+  // FIX: Destructure user directly from useAuth to get proper typing.
+  const { user } = useAuth();
   const { socket } = useSocket();
 
   const [chat, setChat] = useState<ChatType | null>(null);
@@ -25,6 +24,24 @@ export default function ChatWindow() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const findChatDetails = async () => {
+      if (user) {
+        try {
+          // Fetch all chats to find the current one and its member details.
+          // A dedicated API endpoint `/api/chats/${chatId}` would be more efficient.
+          // FIX: Add generic type to api.get to correctly type the response data.
+          const res = await api.get<ChatType[]>('/chats');
+          const currentChat = res.data.find((c: ChatType) => c._id === chatId);
+          setChat(currentChat || null);
+        } catch (error) {
+          console.error('Failed to fetch chat details', error);
+        }
+      }
+    };
+    findChatDetails();
+  }, [chatId, user]);
+  
   const otherUser = chat?.members.find(member => member._id !== user?._id);
 
   useEffect(() => {
@@ -32,10 +49,8 @@ export default function ChatWindow() {
       const fetchChatData = async () => {
         try {
           setLoading(true);
-          // In a real app, you would fetch chat details first.
-          // For simplicity, we are fetching chats in the sidebar and relying on that context.
-          // Let's fetch messages directly.
-          const res = await api.get(`/messages/${chatId}`);
+          // FIX: Add generic type to api.get to correctly type the response data.
+          const res = await api.get<Message[]>(`/messages/${chatId}`);
           setMessages(res.data);
         } catch (error) {
           console.error('Failed to fetch messages', error);
@@ -48,7 +63,9 @@ export default function ChatWindow() {
   }, [chatId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if(messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
   
   useEffect(() => {
@@ -83,7 +100,6 @@ export default function ChatWindow() {
     }
   }, [socket, chatId]);
 
-
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
     try {
@@ -103,14 +119,25 @@ export default function ChatWindow() {
     <div className="flex flex-col h-full bg-lavender-100 dark:bg-dark-surface">
       <ChatHeader user={otherUser} isTyping={isTyping} />
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        <AnimatePresence>
-          <motion.div className="space-y-4">
-            {messages.map((msg) => (
-              <MessageBubble key={msg._id} message={msg} isOwnMessage={msg.sender._id === user?._id} />
-            ))}
-            <div ref={messagesEndRef} />
-          </motion.div>
-        </AnimatePresence>
+        {messages.length > 0 ? (
+          <AnimatePresence>
+            <motion.div className="space-y-4">
+              {messages.map((msg) => (
+                <MessageBubble key={msg._id} message={msg} isOwnMessage={msg.sender._id === user?._id} />
+              ))}
+              <div ref={messagesEndRef} />
+            </motion.div>
+          </AnimatePresence>
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center text-center text-slate-500 dark:text-slate-400">
+            <div className="p-4 bg-lavender-200 dark:bg-dark-primary rounded-full mb-4">
+                <MessageCircle className="w-12 h-12 text-lavender-500 dark:text-lavender-300" />
+            </div>
+            <h2 className="text-xl font-semibold">A new conversation begins!</h2>
+            <p>You are now connected with {otherUser?.username}.</p>
+            <p className="text-sm mt-1">Send a message to start chatting.</p>
+          </div>
+        )}
       </div>
       <MessageInput onSendMessage={handleSendMessage} chatId={chatId as string} receiverId={otherUser?._id as string} />
     </div>

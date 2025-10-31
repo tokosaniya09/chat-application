@@ -1,4 +1,3 @@
-
 export interface User {
     _id: string;
     username: string;
@@ -20,7 +19,7 @@ export interface Message {
 export interface Chat {
     _id: string;
     members: User[];
-    lastMessage: Message;
+    lastMessage?: Message;
     createdAt: string;
     updatedAt: string;
 }
